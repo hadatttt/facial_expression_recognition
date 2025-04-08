@@ -48,6 +48,12 @@ def plot_confusion_matrix(y_true, y_pred, classes, title="Confusion Matrix"):
     plt.tight_layout()
     plt.show()
 
+# Danh sách để lưu giá trị loss và accuracy qua từng epoch
+train_losses = []
+val_losses = []
+train_accuracies = []
+val_accuracies = []
+
 # Training
 best_acc = 0.0
 for epoch in range(1, 31):
@@ -71,8 +77,11 @@ for epoch in range(1, 31):
         if batch_idx % 100 == 0:
             print(f"Epoch [{epoch}/30], Batch [{batch_idx}/{len(train_loader)}], Loss: {loss.item():.4f}")
 
+    train_loss = total_loss / len(train_loader)  # Trung bình loss trên toàn bộ batch
     train_acc = correct / len(train_loader.dataset)
-    print(f"Epoch [{epoch}/30] - Train Loss: {total_loss:.4f}, Train Acc: {train_acc:.4f}")
+    train_losses.append(train_loss)
+    train_accuracies.append(train_acc)
+    print(f"Epoch [{epoch}/30] - Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}")
 
     # Validation
     model.eval()
@@ -94,8 +103,10 @@ for epoch in range(1, 31):
             all_preds.extend(preds.cpu().numpy())
             all_labels.extend(labels.cpu().numpy())
 
+    val_loss = val_loss / len(val_loader)
     val_acc = correct / len(val_loader.dataset)
-    val_loss /= len(val_loader)
+    val_losses.append(val_loss)
+    val_accuracies.append(val_acc)
     print(f"Epoch [{epoch}/30] - Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
 
     if val_acc > best_acc:
@@ -103,7 +114,30 @@ for epoch in range(1, 31):
         torch.save(model.state_dict(), 'model_weights.pth')
         print("✅ Saved best model")
 
-# Sau huấn luyện: Vẽ confusion matrix cho tập Validation
+# Sau huấn luyện: Vẽ biểu đồ Loss và Accuracy
+# Biểu đồ Loss
+plt.figure(figsize=(10, 5))
+plt.plot(range(1, 31), train_losses, label='Training Loss', color='brown')
+plt.plot(range(1, 31), val_losses, label='Validation Loss', color='blue')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.grid(True)
+plt.title('Training and Validation Loss')
+plt.show()
+
+# Biểu đồ Accuracy
+plt.figure(figsize=(10, 5))
+plt.plot(range(1, 31), train_accuracies, label='Training Accuracy', color='brown')
+plt.plot(range(1, 31), val_accuracies, label='Validation Accuracy', color='blue')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.grid(True)
+plt.title('Training and Validation Accuracy')
+plt.show()
+
+# Vẽ confusion matrix cho tập Validation
 plot_confusion_matrix(all_labels, all_preds, classes=class_names, title="Validation Confusion Matrix")
 
 # Vẽ confusion matrix cho tập Train
