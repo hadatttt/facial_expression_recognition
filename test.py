@@ -34,7 +34,7 @@ def predict_emotion(face_img):
         outputs = model(input_tensor)
         preds = outputs.argmax(dim=1)
         emotion = emotion_labels[preds.item()]
-    return emotion
+    return emotion  
 
 # Start camera
 cap = cv2.VideoCapture(0)
